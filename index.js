@@ -1,10 +1,15 @@
+var path = require('path');
+var path = require('path');
 var nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 dotenv.config();
 const fs = require("fs");
+const csv = require('csv-parser');
 
 // Get parameters
 var myArgs = process.argv.slice(2);
+const command = myArgs[0];
+const dir = myArgs[1];
 
 // If credentials file not found
 if (process.env.CORAS_ACCOUNT === "") throw "Credentials not found";
@@ -35,53 +40,55 @@ function ProcessLicenceMails() {
 
     // Load the list of emails from the excel
     var emails = GetMailList();
+    emails.then(function (result) {
+        // use the result here
+        console.log(result);
 
-    // Send a mail foreach user
-    emails.forEach(element => {
-        // Replace the literals
-        var full_name = element.name + " " + element.surname;
-        var custom_content = parse(template_content, full_name);
+        // Send a mail foreach user
+        result.forEach(element => {
+            // Replace the literals
+            var full_name = element.Nombre + " " + element["Apellido 1"];
+            var custom_content = parse(template_content, full_name);
 
-        // Mail settings
-        var mailOptions = {
-            from: "Javi Gárate - Coras <"+process.env.CORAS_ACCOUNT+">",
-            to: element.email,
-            subject: 'Firma licencia baloncesto',
-            html: custom_content,
-            attachments: [{
-                filename: 'Solicitud licencia - '+full_name+'.pdf',
-                path: 'C:/Users/garat/Downloads/Sofi.pdf',
-                contentType: 'application/pdf'
-            }]
-        };
-
-        // Send
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-            } else {
-                console.log('Email sent '+full_name+ ': ' + info.response);
-            }
+            // Mail settings
+            var mailOptions = {
+                from: "Javi Gárate - Coras <" + process.env.CORAS_ACCOUNT + ">",
+                to: element.Mail,
+                subject: 'Firma licencia - ' + element.Nombre,
+                html: custom_content,
+                attachments: [{
+                    filename: 'Solicitud licencia - ' + full_name + '.pdf',
+                    path: path.join(dir, full_name +".pdf"),
+                    contentType: 'application/pdf'
+                }]
+            };
+            // Send
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    console.log('Email sent ' + full_name + ': ' + info.response);
+                }
+            });
         });
     });
 }
 
 function GetMailList() {
-    var users = [{
-        name: "Javi",
-        surname: "",
-        email: ""
-    },{
-        name: "Javi otro",
-        surname: "",
-        email: ""
-    }];
-
-    return users;
+    return new Promise(function (resolve, reject) {
+        var results = [];
+        fs.createReadStream(path.join(dir, 'data.csv'))
+            .pipe(csv())
+            .on('data', (data) => results.push(data))
+            .on('end', () => {
+                resolve(results);
+            })
+            .on('error', reject);
+    });
 }
 
 
 // So we can start processing commands
-switch (myArgs[0]) {
+switch (command) {
     case "licencia": ProcessLicenceMails(); break;
 }
