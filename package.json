@@ -1,0 +1,23 @@
+{
+  "name": "cbcoras-mailsender",
+  "version": "1.0.0",
+  "description": "Mailer para enviar documentación a los socios/familias",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jginternational/cbcoras-mailsender.git"
+  },
+  "keywords": [
+    "nodejs",
+    "mailer"
+  ],
+  "author": "Javi Gárate",
+  "license": "GNU GLP3",
+  "bugs": {
+    "url": "https://github.com/jginternational/cbcoras-mailsender/issues"
+  },
+  "homepage": "https://github.com/jginternational/cbcoras-mailsender#readme"
+}
